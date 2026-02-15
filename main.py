@@ -27,7 +27,7 @@ import time
 # Pygame
 CELL_SIZE = 40
 GRID_MARGIN = 2
-HEADER_H = 80
+HEADER_H = 88
 COLORS = {
     "empty": (240, 240, 245),
     "obstacle": (30, 30, 35),
@@ -150,27 +150,31 @@ def draw_header(
     pygame.draw.rect(surface, (255, 255, 255), header)
     pygame.draw.line(surface, (220, 220, 230), (0, HEADER_H - 1), (surface.get_width(), HEADER_H - 1), 2)
     y_center = 22
-    texts = [
-        f"Steps: {steps}",
-        f"Waypoints: {tasks_done}/{total_tasks}",
-        f"Goal: {current_goal}/{total_tasks}" if total_tasks else "",
-        f"Speed: {speed_label}",
+    labels = [
+        ("Steps:", f"{steps}"),
+        ("Waypoints:", f"{tasks_done}/{total_tasks}"),
+        ("Goal:", f"{current_goal}/{total_tasks}" if total_tasks else ""),
+        ("Speed:", speed_label),
     ]
     x = 16
-    for i, t in enumerate(texts):
-        if not t:
+    pad = 14
+    for i, (label, value) in enumerate(labels):
+        if not value:
             continue
         color = COLORS["text"] if i < 3 else COLORS["text_secondary"]
-        img = font.render(t, True, color)
+        full = f"{label} {value}"
+        img = font.render(full, True, color)
         surface.blit(img, (x, y_center - img.get_height() // 2))
-        x += 120 if i < 4 else 200
+        x += img.get_width() + pad
     # Robot status line
     status_color = (40, 120, 60) if "complete" in status_msg.lower() else COLORS["text_secondary"]
     status_img = font.render(status_msg, True, status_color)
     surface.blit(status_img, (16, 38))
-    # Controls hint
-    ctrl_img = font.render("Space=Run  S=Step  1/2/3  R=Reset  Q=Quit  |  Click/Drag: edit obstacles", True, COLORS["text_secondary"])
-    surface.blit(ctrl_img, (16, 56))
+    # Controls hint (two short lines to avoid cramping)
+    ctrl1 = font.render("Space=Run  S=Step  1/2/3=Speed  R=Reset  Q=Quit", True, COLORS["text_secondary"])
+    ctrl2 = font.render("Click empty = add obstacle   Click obstacle = remove   Drag = move obstacle", True, COLORS["text_secondary"])
+    surface.blit(ctrl1, (16, 54))
+    surface.blit(ctrl2, (16, 68))
 
 
 def run_simulation(
