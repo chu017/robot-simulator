@@ -1,0 +1,5 @@
+# Minimal deps to run the simulator (heuristic task order only; no Gemini/OpenAI).
+# Use when pip times out on grpcio/google-generativeai.
+pygame>=2.5.0
+numpy>=1.24.0
+networkx>=3.0
