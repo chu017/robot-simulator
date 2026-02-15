@@ -177,6 +177,27 @@ def draw_header(
     surface.blit(ctrl2, (16, 68))
 
 
+def draw_restart_button(
+    surface: pygame.Surface,
+    rect: pygame.Rect,
+    font: pygame.font.Font,
+    highlight: bool = False,
+) -> None:
+    """Draw a Restart button. highlight=True when mission is complete."""
+    if highlight:
+        color = (60, 140, 80)
+        border = (40, 100, 60)
+    else:
+        color = (100, 120, 140)
+        border = (70, 90, 110)
+    pygame.draw.rect(surface, color, rect)
+    pygame.draw.rect(surface, border, rect, 2)
+    text = font.render("Restart", True, (255, 255, 255))
+    tx = rect.centerx - text.get_width() // 2
+    ty = rect.centery - text.get_height() // 2
+    surface.blit(text, (tx, ty))
+
+
 def run_simulation(
     grid_rows: int = 12,
     grid_cols: int = 16,
@@ -227,6 +248,7 @@ def run_simulation(
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("AI Robot Simulator")
     clock = pygame.time.Clock()
+    restart_btn_rect = pygame.Rect(width - 92, 14, 76, 26)
 
     auto_advance = False
     step_once = False
@@ -250,6 +272,17 @@ def run_simulation(
                     mouse_down_cell = cell
                     mouse_down_was_obstacle = grid[cell[0], cell[1]] == OBSTACLE
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                if restart_btn_rect.collidepoint(event.pos):
+                    pygame.quit()
+                    run_simulation(
+                        grid_rows=grid_rows,
+                        grid_cols=grid_cols,
+                        num_tasks=num_tasks,
+                        num_obstacles=num_obstacles,
+                        seed=(seed + 1) if seed is not None else None,
+                        ai_prefer=ai_prefer,
+                    )
+                    return
                 if mouse_down_cell is not None:
                     cell = pixel_to_cell(event.pos[0], event.pos[1], grid_rows, grid_cols)
                     if cell is not None:
@@ -363,6 +396,8 @@ def run_simulation(
             status_msg,
             font,
         )
+        mission_complete = len(completed_tasks) >= len(task_positions) and len(task_positions) > 0
+        draw_restart_button(screen, restart_btn_rect, font, highlight=mission_complete)
         pygame.display.flip()
         clock.tick(40)
 
